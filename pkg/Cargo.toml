@@ -18,10 +18,10 @@ md-5 = "0.10"
 sha1 = "0.10"
 sha2 = "0.10"
 hmac = "0.12"
-base64 = "0.21"
+base64 = "0.22.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-config = "0.13"
+config = "0.14.0"
 chrono = "0.4"
 time = { version = "0.3", features = [
     "macros",
@@ -42,14 +42,14 @@ tower-http = { version = "0.5", features = ["trace"] }
 axum = { version = "0.7", features = ["macros"] }
 axum-extra = "0.9"
 nanoid = "0.4"
-validator = { version = "0.16", features = ["derive"] }
-sea-orm = { version = "0.12", features = [
-    "sqlx-mysql",
+validator = { version = "0.18.1", features = ["derive"] }
+sea-orm = { version = "1.0.1", features = [
+    "sqlx-postgres",
     "runtime-tokio-rustls",
     "macros",
     "debug-print",
 ] }
-redis = { version = "0.25", features = [
+redis = { version = "0.26.1", features = [
     "r2d2",
     "cluster",
     "cluster-async",

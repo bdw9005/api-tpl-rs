@@ -23,7 +23,7 @@ pub struct ReqLogin {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct RespLogin {
     pub name: String,
-    pub role: i8,
+    pub role: i32,
     pub auth_token: String,
 }
 

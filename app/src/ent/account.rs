@@ -6,12 +6,12 @@ use sea_orm::entity::prelude::*;
 #[sea_orm(table_name = "account")]
 pub struct Model {
     #[sea_orm(primary_key)]
-    pub id: u64,
+    pub id: i64,
     #[sea_orm(unique)]
     pub username: String,
     pub password: String,
     pub salt: String,
-    pub role: i8,
+    pub role: i32,
     pub realname: String,
     pub login_at: i64,
     pub login_token: String,

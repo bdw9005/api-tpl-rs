@@ -22,6 +22,8 @@ pub fn init() -> Router {
         .route("/accounts/:account_id", get(account::info))
         .route("/projects", get(project::list).post(project::create))
         .route("/projects/:project_id", get(project::detail))
+        .route("/skip_projects", get(project::skip_list))
+        .route("/skip_projects/search", get(project::skip_search_list))
         .layer(axum::middleware::from_fn(middleware::auth::handle));
 
     Router::new()

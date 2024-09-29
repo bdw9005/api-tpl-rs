@@ -70,7 +70,7 @@ impl RedisLock {
         let mut conn = cache::redis_async_pool().get().await?;
         let opts = redis::SetOptions::default()
             .conditional_set(NX)
-            .with_expiration(PX(self.expire));
+            .with_expiration(PX(self.expire.try_into().unwrap()));
         let token = nanoid!(32);
 
         let ret_setnx: redis::RedisResult<bool> = conn.set_options(&self.key, &token, opts).await;

@@ -32,7 +32,7 @@ pub async fn create(
 
 pub async fn info(
     Extension(identity): Extension<Identity>,
-    Path(account_id): Path<u64>,
+    Path(account_id): Path<i64>,
 ) -> Result<ApiOK<RespInfo>> {
     if !identity.is_role(Role::Super) {
         return Err(ApiErr::ErrPerm(None));

@@ -15,7 +15,7 @@ use pkg::result::{
 
 use crate::api::service::{
     self,
-    project::{ReqCreate, RespDetail, RespList},
+    project::{ReqCreate, RespDetail, RespList, SkipRespList},
 };
 
 pub async fn create(
@@ -35,9 +35,23 @@ pub async fn list(
     service::project::list(identity, query).await
 }
 
+pub async fn skip_list(
+    Extension(identity): Extension<Identity>,
+    Query(query): Query<HashMap<String, String>>,
+) -> Result<ApiOK<SkipRespList>> {
+    service::project::skip_list(identity, query).await
+}
+
+pub async fn skip_search_list(
+    Extension(identity): Extension<Identity>,
+    Query(query): Query<HashMap<String, String>>,
+) -> Result<ApiOK<SkipRespList>> {
+    service::project::skip_search_list(identity, query).await
+}
+
 pub async fn detail(
     Extension(identity): Extension<Identity>,
-    Path(project_id): Path<u64>,
+    Path(project_id): Path<i64>,
 ) -> Result<ApiOK<RespDetail>> {
     service::project::detail(identity, project_id).await
 }

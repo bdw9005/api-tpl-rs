@@ -63,7 +63,7 @@ pub async fn create(req: ReqCreate) -> Result<ApiOK<()>> {
 
 #[derive(Debug, Serialize)]
 pub struct RespInfo {
-    pub id: u64,
+    pub id: i64,
     pub username: String,
     pub realname: String,
     pub login_at: i64,
@@ -72,7 +72,7 @@ pub struct RespInfo {
     pub created_at_str: String,
 }
 
-pub async fn info(account_id: u64) -> Result<ApiOK<RespInfo>> {
+pub async fn info(account_id: i64) -> Result<ApiOK<RespInfo>> {
     let model = Account::find_by_id(account_id)
         .one(db::conn())
         .await

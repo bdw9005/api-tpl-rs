@@ -13,13 +13,13 @@ pub enum Role {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Identity {
-    i: u64,
-    r: i8,
+    i: i64,
+    r: i32,
     t: String,
 }
 
 impl Identity {
-    pub fn new(id: u64, role: i8, token: String) -> Self {
+    pub fn new(id: i64, role: i32, token: String) -> Self {
         Self {
             i: id,
             r: role,
@@ -78,7 +78,7 @@ impl Identity {
         Ok(BASE64_STANDARD.encode(cipher))
     }
 
-    pub fn id(&self) -> u64 {
+    pub fn id(&self) -> i64 {
         self.i
     }
 

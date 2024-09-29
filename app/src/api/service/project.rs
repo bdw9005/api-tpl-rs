@@ -57,7 +57,7 @@ pub async fn create(identity: Identity, req: ReqCreate) -> Result<ApiOK<()>> {
 
 #[derive(Debug, Serialize)]
 pub struct RespInfo {
-    pub id: u64,
+    pub id: i64,
     pub code: String,
     pub name: String,
     pub created_at: i64,
@@ -70,6 +70,12 @@ pub struct RespList {
     pub list: Vec<RespInfo>,
 }
 
+#[derive(Debug, Serialize)]
+pub struct SkipRespList {
+    pub total: i64,
+    pub skip: u64,
+    pub list: Vec<RespInfo>,
+}
 pub async fn list(identity: Identity, query: HashMap<String, String>) -> Result<ApiOK<RespList>> {
     let mut builder = Project::find();
     if identity.is_role(Role::Super) {
@@ -138,10 +144,144 @@ pub async fn list(identity: Identity, query: HashMap<String, String>) -> Result<
 
     Ok(ApiOK(Some(resp)))
 }
+pub async fn skip_list(identity: Identity, query: HashMap<String, String>) -> Result<ApiOK<SkipRespList>> {
+    let mut builder = Project::find();
+    if identity.is_role(Role::Super) {
+        if let Some(account_id) = query.get("account_id") {
+            if let Ok(v) = account_id.parse::<u64>() {
+                builder = builder.filter(project::Column::AccountId.eq(v));
+            }
+        }
+    } else {
+        builder = builder.filter(project::Column::AccountId.eq(identity.id()));
+    }
+    if let Some(code) = query.get("code") {
+        if !code.is_empty() {
+            builder = builder.filter(project::Column::Code.eq(code.to_owned()));
+        }
+    }
+    if let Some(name) = query.get("name") {
+        if !name.is_empty() {
+            builder = builder.filter(project::Column::Name.contains(name));
+        }
+    }
 
+    let (offset, limit) = util::query_skip_page(&query);
+    
+        let total = builder
+            .clone()
+            .select_only()
+            .column_as(project::Column::Id.count(), "count")
+            .into_tuple::<i64>()
+            .one(db::conn())
+            .await
+            .map_err(|e| {
+                tracing::error!(error = ?e, "error count project");
+                ApiErr::ErrSystem(None)
+            })?
+            .unwrap_or_default();
+
+    let models = builder
+        .order_by(project::Column::Id, Order::Desc)
+        .offset(offset)
+        .limit(limit)
+        .all(db::conn())
+        .await
+        .map_err(|e| {
+            tracing::error!(error = ?e, "error find project");
+            ApiErr::ErrSystem(None)
+        })?;
+    let mut resp = SkipRespList {
+        total,
+        skip: offset.clone(),
+        list: (Vec::with_capacity(models.len())),
+    };
+    for model in models {
+        let info = RespInfo {
+            id: model.id,
+            code: model.code,
+            name: model.name,
+            created_at: model.created_at,
+            created_at_str: xtime::to_string(xtime::DATETIME, model.created_at, offset!(+8))
+                .unwrap_or_default(),
+        };
+        resp.list.push(info);
+    }
+
+    Ok(ApiOK(Some(resp)))
+}
+pub async fn skip_search_list(identity: Identity, query: HashMap<String, String>) -> Result<ApiOK<SkipRespList>> {
+    let mut builder = Project::find();
+    if identity.is_role(Role::Super) {
+        if let Some(account_id) = query.get("account_id") {
+            if let Ok(v) = account_id.parse::<u64>() {
+                builder = builder.filter(project::Column::AccountId.eq(v));
+            }
+        }
+    } else {
+        builder = builder.filter(project::Column::AccountId.eq(identity.id()));
+    }
+    if let Some(code) = query.get("code") {
+        if !code.is_empty() {
+            builder = builder.filter(project::Column::Code.eq(code.to_owned()));
+        }
+    }
+    if let Some(name) = query.get("name") {
+        if !name.is_empty() {
+            builder = builder.filter(project::Column::Name.contains(name));
+        }
+    }
+
+    let (offset, limit, search) = util::query_skip_search_page(&query);
+
+        let total = builder
+            .clone()
+            .select_only()
+            .filter(project::Column::Name.contains(search.clone()))
+            .column_as(project::Column::Id.count(), "count")
+            .into_tuple::<i64>()
+            .one(db::conn())
+            .await
+            .map_err(|e| {
+                tracing::error!(error = ?e, "error count project");
+                ApiErr::ErrSystem(None)
+            })?
+            .unwrap_or_default();
+    // }
+
+    let models = builder
+        .filter(project::Column::Name.contains(search))
+        .order_by(project::Column::Id, Order::Desc)
+        .offset(offset)
+        .limit(limit)
+        .all(db::conn())
+        .await
+        .map_err(|e| {
+            tracing::error!(error = ?e, "error find project");
+            ApiErr::ErrSystem(None)
+        })?;
+    let mut resp = SkipRespList {
+        total,
+        skip: offset.clone(),
+        list: (Vec::with_capacity(models.len())),
+    };
+    for model in models {
+        let info = RespInfo {
+            id: model.id,
+            code: model.code,
+            name: model.name,
+            created_at: model.created_at,
+            created_at_str: xtime::to_string(xtime::DATETIME, model.created_at, offset!(+8))
+                .unwrap_or_default(),
+        };
+        resp.list.push(info);
+    }
+
+    Ok(ApiOK(Some(resp)))
+}
 #[derive(Debug, Serialize)]
 pub struct RespDetail {
-    pub id: u64,
+    pub id: i64,
     pub code: String,
     pub name: String,
     pub created_at: i64,
@@ -151,11 +291,11 @@ pub struct RespDetail {
 
 #[derive(Debug, Serialize)]
 pub struct ProjAccount {
-    pub id: u64,
+    pub id: i64,
     pub name: String,
 }
 
-pub async fn detail(identity: Identity, project_id: u64) -> Result<ApiOK<RespDetail>> {
+pub async fn detail(identity: Identity, project_id: i64) -> Result<ApiOK<RespDetail>> {
     let (model_proj, model_account) = Project::find_by_id(project_id)
         .find_also_related(Account)
         .one(db::conn())

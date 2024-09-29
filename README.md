@@ -25,11 +25,26 @@ Rust API 快速开发脚手架
 
 ```sh
 # 数据库
+## mysql
 demo_rs.sql
-
+## postgresql
+demo_rs_pg.sql
 # 配置文件
 mv config.toml.example config.toml
 
 # 启动服务
 cargo run -- serve
+```
+#### 3. 断点调试
+.vscode/launch.json文件，将configurations中
+"args": [], => "args": ["serve"],
+
+
+#### 4. 测试
+## http://127.0.0.1:8000/v1/login
+```json
+{
+	"username":"admin",
+	"password":"admin"
+}
 ```
